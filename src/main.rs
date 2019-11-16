@@ -1,7 +1,7 @@
 rltk::add_wasm_support!();
-use rltk::{Console, GameState, Rltk, VirtualKeyCode, RGB};
+use rltk::{Console, GameState, Rltk, RGB};
 use specs::prelude::*;
-use std::cmp::{max, min};
+// use std::cmp::{max, min};
 #[macro_use]
 extern crate specs_derive;
 
@@ -13,10 +13,6 @@ struct Position {
     y: i32,
 }
 
-// impl Component for Position {
-//     type Storage = VecStorage<Self>;
-// }
-
 #[derive(Component)]
 struct Renderable {
     glyph: u8,
@@ -24,14 +20,45 @@ struct Renderable {
     bg: RGB,
 }
 
+#[derive(Component)]
+struct LeftMover {}
+
+// SYSTEMS
+struct LeftWalker {}
+
+impl<'a> System<'a> for LeftWalker {
+    type SystemData = (ReadStorage<'a, LeftMover>, WriteStorage<'a, Position>);
+
+    fn run(&mut self, (lefty, mut pos): Self::SystemData) {
+        
+        for (_lefty, pos) in (&lefty, &mut pos).join() {
+            pos.x -=1 ;
+            if pos.x < 0 { pos.x = 79; }
+        }
+    }
+}
+
+
+// STATE
 struct State {
     ecs: World,
+}
+
+impl State {
+
+    fn run_systems(&mut self) {
+        let mut lw_sys = LeftWalker{};
+        lw_sys.run_now(&self.ecs);
+        self.ecs.maintain();
+    }
 }
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
         // ctx.print(1, 1, "Hello Rust World");
+
+        self.run_systems();
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
 
@@ -50,6 +77,7 @@ fn main() {
     // Register our components with the ecs world (internally creates storage systems, etc)
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
+    gs.ecs.register::<LeftMover>();
 
     // Create an entity
     gs.ecs
@@ -72,6 +100,7 @@ fn main() {
                 fg: RGB::named(rltk::RED),
                 bg: RGB::named(rltk::BLACK),
             })
+            .with(LeftMover {})
             .build();
     }
 
