@@ -1,128 +1,29 @@
-use rltk::{Console, GameState, Rltk, RGB, VirtualKeyCode};
+use rltk::{Console, GameState, Rltk, RGB};
 use specs::prelude::*;
-use std::cmp::{max, min};
 #[macro_use]
 extern crate specs_derive;
 
 rltk::add_wasm_support!();
 
-// Components
-#[derive(Component)]
-struct Position {
-    x: i32,
-    y: i32,
-}
+// Our modules
+mod components;
+pub use components::*;
 
-#[derive(Component)]
-struct Renderable {
-    glyph: u8,
-    fg: RGB,
-    bg: RGB,
-}
+mod map;
+pub use map::*;
 
-#[derive(Component, Debug)]
-struct Player {}
+mod player;
+pub use player::*;
 
-// #[derive(Component)]
-// struct LeftMover {}
 
-// Copy & Clone allow this enum to be used
-// as a `value` type, that is, passed around by value
-// instead of pointers
-// PartialEq allow us to use == to see if two tile types match
-#[derive(PartialEq, Copy, Clone)]
-enum TileType {
-    Wall,
-    Floor,
-}
-
-struct State {
+pub struct State {
     ecs: World,
 }
 
-pub fn xy_idx(x: i32, y: i32) -> usize {
-    (y as usize * 80) + x as usize
-}
+impl State {
 
-fn new_map() -> Vec<TileType> {
-    let mut map = vec![TileType::Floor; 80*50];
-
-    // Make the boundary walls
-    for x in 0..80 {
-        map[xy_idx(x, 0)] = TileType::Wall;
-        map[xy_idx(x, 49)] = TileType::Wall;
-    }
-
-    for y in 0..50 {
-        map[xy_idx(0, y)] = TileType::Wall;
-        map[xy_idx(79, y)] = TileType::Wall;
-    }
-
-    // Now we'll randomly splat a bunch of walls. It won't be pretty, but it's a
-    // decent illustration. First obtain the thread-local RNG:
-    let mut rng = rltk::RandomNumberGenerator::new();
-
-    for _i in 0..400 {
-        let x = rng.roll_dice(1, 79);
-        let y = rng.roll_dice(1, 49);
-        let idx = xy_idx(x, y);
-
-        if idx != xy_idx(40, 25) {
-            map[idx] = TileType::Wall;
-        }
-    }
-
-    map
-}
-
-fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
-    let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
-    let map = ecs.fetch::<Vec<TileType>>();
-
-    for (_player, pos) in (&mut players, &mut positions).join() {
-        let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
-
-        if map[destination_idx] != TileType::Wall {
-            pos.x = min(79, max(0, pos.x + delta_x));
-            pos.y = min(49, max(0, pos.y + delta_y));
-        }
-    }
-}
-
-fn player_input(gs: &mut State, ctx: &mut Rltk) {
-    // Player movement
-    match ctx.key {
-        None => {}, // Nothing happened
-        Some(key) => match key {
-            VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
-            VirtualKeyCode::Right => try_move_player(1, 0, &mut gs.ecs),
-            VirtualKeyCode::Up => try_move_player(0, -1, &mut gs.ecs),
-            VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
-            _ => {}
-        }
-    }
-}
-
-fn draw_map(map: &[TileType], ctx: &mut Rltk) {
-    let mut x = 0;
-    let mut y = 0;
-    for tile in map.iter() {
-        // Render a tile depending on it's type
-        match tile {
-            TileType::Floor => {
-                ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), rltk::to_cp437('.'));
-            },
-            TileType::Wall => {
-                ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), rltk::to_cp437('#'));
-            }
-        }
-
-        x += 1;
-        if x > 79 {
-            x = 0;
-            y += 1;
-        }
+    fn run_systems(&mut self) {
+        self.ecs.maintain();
     }
 }
 
@@ -147,7 +48,6 @@ impl GameState for State {
 
 
 
-
 // SYSTEMS
 // struct LeftWalker {}
 
@@ -165,14 +65,7 @@ impl GameState for State {
 
 
 // STATE
-impl State {
 
-    fn run_systems(&mut self) {
-        // let mut lw_sys = LeftWalker{};
-        // lw_sys.run_now(&self.ecs);
-        self.ecs.maintain();
-    }
-}
 
 
 
@@ -189,7 +82,7 @@ fn main() {
     gs.ecs.register::<Player>();
 
     // Insert resources into our ecs world
-    gs.ecs.insert(new_map());   // The map is now available from everywhere the ECS can see!
+    gs.ecs.insert(new_map_test());   // The map is now available from everywhere the ECS can see!
 
     // Create a player entity
     gs.ecs

@@ -1,0 +1,1 @@
+When you make a new file in Rust, it automatically becomes a module. You then have to tell Rust to use these modules, so main.rs has gained a few mod map and similar, followed by pub use map::*. This says "import the module map, and then use - and make available to other modules - its public contents".
