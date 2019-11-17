@@ -15,6 +15,8 @@ pub use map::*;
 mod player;
 pub use player::*;
 
+mod rect;
+pub use rect::Rect;
 
 pub struct State {
     ecs: World,
@@ -82,7 +84,8 @@ fn main() {
     gs.ecs.register::<Player>();
 
     // Insert resources into our ecs world
-    gs.ecs.insert(new_map_test());   // The map is now available from everywhere the ECS can see!
+    // gs.ecs.insert(new_map_test());   // The map is now available from everywhere the ECS can see!
+    gs.ecs.insert(new_map_rooms_and_corridors());   // The map is now available from everywhere the ECS can see!
 
     // Create a player entity
     gs.ecs
