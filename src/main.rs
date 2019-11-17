@@ -50,26 +50,6 @@ impl GameState for State {
 
 
 
-// SYSTEMS
-// struct LeftWalker {}
-
-// impl<'a> System<'a> for LeftWalker {
-//     type SystemData = (ReadStorage<'a, LeftMover>, WriteStorage<'a, Position>);
-
-//     fn run(&mut self, (lefty, mut pos): Self::SystemData) {
-        
-//         for (_lefty, pos) in (&lefty, &mut pos).join() {
-//             pos.x -=1 ;
-//             if pos.x < 0 { pos.x = 79; }
-//         }
-//     }
-// }
-
-
-// STATE
-
-
-
 
 fn main() {
     let ctx = Rltk::init_simple8x8(80, 50, "Hello Rust World", "resources");
@@ -80,17 +60,17 @@ fn main() {
     // Register our components with the ecs world (internally creates storage systems, etc)
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
-    // gs.ecs.register::<LeftMover>();
     gs.ecs.register::<Player>();
 
     // Insert resources into our ecs world
-    // gs.ecs.insert(new_map_test());   // The map is now available from everywhere the ECS can see!
-    gs.ecs.insert(new_map_rooms_and_corridors());   // The map is now available from everywhere the ECS can see!
+    let (rooms, map) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);   // The map is now available from everywhere the ECS can see!
+    let (player_x, player_y) = rooms[0].center();
 
     // Create a player entity
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position { x: player_x, y: player_y })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
@@ -98,20 +78,6 @@ fn main() {
         })
         .with(Player{})
         .build();
-
-    // // Create multiple entities
-    // for i in 0..10 {
-    //     gs.ecs
-    //         .create_entity()
-    //         .with(Position { x: i * 7, y: 20 })
-    //         .with(Renderable {
-    //             glyph: rltk::to_cp437('☺'),
-    //             fg: RGB::named(rltk::RED),
-    //             bg: RGB::named(rltk::BLACK),
-    //         })
-    //         .with(LeftMover {})
-    //         .build();
-    // }
 
     rltk::main_loop(ctx, gs);
 }
