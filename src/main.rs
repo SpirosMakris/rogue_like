@@ -69,7 +69,7 @@ fn main() {
     // Put the player in the center of the 1st room before moving map into the ECS world
     let (player_x, player_y) = map.rooms[0].center();
 
-    gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
+  
 
     // Create a player entity
     gs.ecs
@@ -90,6 +90,25 @@ fn main() {
             dirty: true,
         })
         .build();
-
+    
+        // Create monsters
+        for room in map.rooms.iter().skip(1) {
+            let (x,y) = room.center();
+            gs.ecs
+                .create_entity()
+                .with(Position {x, y})
+                .with(Renderable {
+                    glyph: rltk::to_cp437('g'),
+                    fg: RGB::named(rltk::RED),
+                    bg: RGB::named(rltk::BLACK),
+                })
+                .with(Viewshed {
+                    visible_tiles: Vec::new(), range: 8, dirty: true
+                })
+                .build();
+        }
+    
+    gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
+    
     rltk::main_loop(ctx, gs);
 }
