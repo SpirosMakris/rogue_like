@@ -66,7 +66,9 @@ fn main() {
 
     // Insert resources into our ecs world
     let map: Map = Map::new_map_rooms_and_corridors();
+    // Put the player in the center of the 1st room before moving map into the ECS world
     let (player_x, player_y) = map.rooms[0].center();
+
     gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
 
     // Create a player entity

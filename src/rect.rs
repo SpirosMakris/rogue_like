@@ -15,6 +15,7 @@ impl Rect {
         }
     }
 
+    // @TODO: Re-find out why this works. Is it Riemmann something something?
     /// Returns true if this Rect overlaps with another
     pub fn intersect(&self, other: &Rect) -> bool {
         self.x1 <= other.x2 && self.x2 >= other.x1 && self.y1 <= other.y2 && self.y2 >= other.y1

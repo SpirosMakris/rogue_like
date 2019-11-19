@@ -16,6 +16,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             pos.x = min(79, max(0, pos.x + delta_x));
             pos.y = min(49, max(0, pos.y + delta_y));
 
+            // We moved so recalculate map visibility
             viewshed.dirty = true;
         }
     }
