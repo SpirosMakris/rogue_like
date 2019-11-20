@@ -1,4 +1,4 @@
-use rltk::{Console, GameState, Rltk, RGB, Point, RandomNumberGenerator};
+use rltk::{Console, GameState, Rltk, RGB, Point};
 use specs::prelude::*;
 #[macro_use]
 extern crate specs_derive;
@@ -59,9 +59,6 @@ impl GameState for State {
         } else {
             self.run_state = player_input(self, ctx);
         }
-
-        // player_input(self, ctx);
-        // self.run_systems();
 
         // The map is a resource, so get it from ecs world
         draw_map(&self.ecs, ctx);
