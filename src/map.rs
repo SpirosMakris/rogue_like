@@ -3,6 +3,10 @@ use rltk::{Algorithm2D, BaseMap, Console, Point, Rltk, RGB};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
+const MAPWIDTH: usize = 80;
+const MAPHEIGHT: usize = 43;
+const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
+
 // Copy & Clone allow this enum to be used
 // as a `value` type, that is, passed around by value
 // instead of pointers
@@ -21,6 +25,8 @@ pub struct Map {
     pub height: i32,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
+    // pub tile_content: Vec<Vec<Entity>>,
 }
 
 impl Map {
@@ -55,6 +61,19 @@ impl Map {
         }
     }
 
+    fn is_exit_valid(&self, x: i32, y: i32) -> bool {
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 { return false; }
+        let idx = self.xy_idx(x, y);
+        !self.blocked[idx]
+        // self.tiles[idx] != TileType::Wall
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter_mut().enumerate() {
+            self.blocked[i] = *tile == TileType::Wall;
+        }
+    }
+
     /// Makes a new map using the algorithm from http://rogueliketutorials.com/tutorials/tcod/part-3/
     /// This gives a handful of random rooms and corridors joining them together.
     pub fn new_map_rooms_and_corridors() -> Map {
@@ -65,6 +84,7 @@ impl Map {
             height: 50,
             revealed_tiles: vec![false; 80 * 50],
             visible_tiles: vec![false; 80 * 50],
+            blocked: vec![false; 80 * 50],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -118,8 +138,18 @@ impl BaseMap for Map {
         self.tiles[idx as usize] == TileType::Wall
     }
 
-    fn get_available_exits(&self, _idx: i32) -> Vec<(i32, f32)> {
-        Vec::new()
+    fn get_available_exits(&self, idx: i32) -> Vec<(i32, f32)> {
+        let mut exits: Vec<(i32, f32)> = Vec::new();
+        let x = idx % self.width;
+        let y = idx / self.width;
+
+        // Cardinal directions
+        if self.is_exit_valid(x-1, y) { exits.push((idx-1, 1.0)) };
+        if self.is_exit_valid(x+1, y) { exits.push((idx+1, 1.0)) };
+        if self.is_exit_valid(x, y-1) { exits.push((idx-self.width, 1.0)) };
+        if self.is_exit_valid(x, y+1) { exits.push((idx+self.width, 1.0)) };
+
+        exits
     }
 
     fn get_pathing_distance(&self, idx1: i32, idx2: i32) -> f32 {
