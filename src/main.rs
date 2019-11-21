@@ -98,6 +98,8 @@ fn main() {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
+    gs.ecs.register::<SufferDamage>();
 
     // Insert resources into our ecs world
     let map: Map = Map::new_map_rooms_and_corridors();

@@ -43,3 +43,12 @@ pub struct CombatStats {
   pub power: i32,
 }
 
+#[derive(Component, Debug)]
+pub struct WantsToMelee {
+  pub target: Entity,
+}
+
+#[derive(Component, Debug)]
+pub struct SufferDamage {
+  pub amount: i32,
+}
