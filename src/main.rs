@@ -97,6 +97,7 @@ fn main() {
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
+    gs.ecs.register::<CombatStats>();
 
     // Insert resources into our ecs world
     let map: Map = Map::new_map_rooms_and_corridors();
@@ -124,6 +125,7 @@ fn main() {
             dirty: true,
         })
         .with(Name { name: "Player".to_string() })
+        .with(CombatStats { max_hp: 30, hp: 30, defense: 2, power: 5})
         .build();
     
     // Create monsters
@@ -159,6 +161,7 @@ fn main() {
             .with(Monster {})
             .with(Name { name: format!("{} #{}", &name, i) })
             .with(BlocksTile {})
+            .with(CombatStats { max_hp: 16, hp: 16, defense: 1, power: 4 })
             .build();
     }
     
