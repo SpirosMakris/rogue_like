@@ -1,4 +1,4 @@
-use super::{Map, Monster, Name, Position, RunState, Viewshed, WantsToMelee};
+use super::{Map, Monster, Position, RunState, Viewshed, WantsToMelee};
 use rltk::Point;
 use specs::prelude::*;
 
@@ -14,7 +14,6 @@ impl<'a> System<'a> for MonsterAI {
         Entities<'a>,
         WriteStorage<'a, Viewshed>,
         ReadStorage<'a, Monster>,
-        ReadStorage<'a, Name>,
         WriteStorage<'a, Position>,
         WriteStorage<'a, WantsToMelee>,
     );
@@ -28,7 +27,6 @@ impl<'a> System<'a> for MonsterAI {
             entities,
             mut viewshed,
             monster,
-            name,
             mut position,
             mut wants_to_melee,
         ) = data;
@@ -38,8 +36,8 @@ impl<'a> System<'a> for MonsterAI {
             return;
         }
 
-        for (entity, mut viewshed, _monster, name, mut pos) in
-            (&entities, &mut viewshed, &monster, &name, &mut position).join()
+        for (entity, mut viewshed, _monster, mut pos) in
+            (&entities, &mut viewshed, &monster, &mut position).join()
         {
             // Find out distance betweenus(monster) and player
             let distance =

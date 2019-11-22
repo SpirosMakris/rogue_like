@@ -34,6 +34,7 @@ mod damage_system;
 use damage_system::DamageSystem;
 
 mod gui;
+mod gamelog;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
@@ -236,6 +237,7 @@ fn main() {
     gs.ecs.insert(Point::new(player_x, player_y)); // Add player position as an ECS resource (updated in player input)
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(gamelog::GameLog{ entries: vec!["Welcome to Rusty Roguelike".to_string()]});
 
     rltk::main_loop(ctx, gs);
 }

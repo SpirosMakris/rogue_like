@@ -1,4 +1,4 @@
-use super::{CombatStats, Player};
+use super::{CombatStats, Player, gamelog::GameLog, Map, Name, Position};
 use rltk::{Console, Rltk, RGB};
 use specs::prelude::*;
 
@@ -12,6 +12,7 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
         RGB::named(rltk::BLACK),
     );
 
+    // Display health
     let combat_stats = ecs.read_storage::<CombatStats>();
     let players = ecs.read_storage::<Player>();
 
@@ -35,5 +36,13 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
             RGB::named(rltk::YELLOW),
             RGB::named(rltk::BLACK),
         );
+    }
+
+    // Display log
+    let log = ecs.fetch::<GameLog>();
+    let mut y = 44;
+    for s in log.entries.iter() {
+      if y < 49 { ctx.print(2, y, &s.to_string()); }
+      y += 1;
     }
 }
