@@ -1,4 +1,4 @@
-use super::{CombatStats, Player, SufferDamage, Name, gamelog::GameLog};
+use super::{gamelog::GameLog, CombatStats, Name, Player, SufferDamage};
 use rltk::console;
 use specs::prelude::*;
 
@@ -40,14 +40,14 @@ pub fn delete_the_dead(ecs: &mut World) {
                 let player = players.get(entity);
                 match player {
                     None => {
-                      let victim_name = names.get(entity);
-                      if let Some(victim_name) = victim_name {
-                        log.entries.insert(0, format!("{} is dead", &victim_name.name));
-                      }
-                      // This is NOT the player, queue for deletion
-                      dead.push(entity);
-
-                    } ,
+                        let victim_name = names.get(entity);
+                        if let Some(victim_name) = victim_name {
+                            log.entries
+                                .insert(0, format!("{} is dead", &victim_name.name));
+                        }
+                        // This is NOT the player, queue for deletion
+                        dead.push(entity);
+                    }
                     Some(_) => console::log("You dead"),
                 }
             }
