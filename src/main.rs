@@ -27,6 +27,12 @@ use monster_ai_system::MonsterAI;
 mod map_indexing_system;
 use map_indexing_system::MapIndexingSystem;
 
+mod melee_combat_system;
+use melee_combat_system::MeleeCombatSystem;
+
+mod damage_system;
+use damage_system::DamageSystem;
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
     Paused,
@@ -51,6 +57,14 @@ impl State {
         // Run Map Indexing system
         let mut map_index = MapIndexingSystem {};
         map_index.run_now(&self.ecs);
+
+        // Run Melee Combat system
+        let mut melee = MeleeCombatSystem {};
+        melee.run_now(&self.ecs);
+
+        // Run Damage system
+        let mut damage = DamageSystem {};
+        damage.run_now(&self.ecs);
         
         self.ecs.maintain();
     }
@@ -66,6 +80,9 @@ impl GameState for State {
         } else {
             self.run_state = player_input(self, ctx);
         }
+
+        // After systems run, delete any dead entities
+        damage_system::delete_the_dead(&mut self.ecs);
 
         // The map is a resource, so get it from ecs world
         draw_map(&self.ecs, ctx);
