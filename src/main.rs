@@ -126,7 +126,7 @@ fn main() {
   
 
     // Create a player entity
-    gs.ecs
+    let player_entity = gs.ecs
         .create_entity()
         .with(Position {
             x: player_x,
@@ -184,6 +184,7 @@ fn main() {
             .build();
     }
     
+    gs.ecs.insert(player_entity);
     gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
     gs.ecs.insert(Point::new(player_x, player_y)); // Add player position as an ECS resource (updated in player input)
     
