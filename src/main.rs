@@ -1,4 +1,4 @@
-use rltk::{Console, GameState, Rltk, RGB, Point};
+use rltk::{Console, GameState, Point, Rltk, RGB};
 use specs::prelude::*;
 #[macro_use]
 extern crate specs_derive;
@@ -35,8 +35,6 @@ use damage_system::DamageSystem;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
-    // Paused,
-    // Running,
     AwaitingInput,
     PreRun,
     PlayerTurn,
@@ -45,7 +43,6 @@ pub enum RunState {
 
 pub struct State {
     ecs: World,
-    // pub run_state: RunState
 }
 
 impl State {
@@ -55,7 +52,7 @@ impl State {
         vis.run_now(&self.ecs);
 
         // Run Monster AI System
-        let mut mob = MonsterAI{};
+        let mut mob = MonsterAI {};
         mob.run_now(&self.ecs);
 
         // Run Map Indexing system
@@ -69,13 +66,14 @@ impl State {
         // Run Damage system
         let mut damage = DamageSystem {};
         damage.run_now(&self.ecs);
-        
+
         self.ecs.maintain();
     }
 }
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
+        // Clear console
         ctx.cls();
 
         let mut new_runstate;
@@ -89,14 +87,15 @@ impl GameState for State {
             RunState::PreRun => {
                 self.run_systems();
                 new_runstate = RunState::AwaitingInput;
-            },
+            }
             RunState::AwaitingInput => {
+                // If player makes a move returns a state other than AwaitingInput
                 new_runstate = player_input(self, ctx);
-            },
+            }
             RunState::PlayerTurn => {
                 self.run_systems();
                 new_runstate = RunState::MonsterTurn;
-            },
+            }
             RunState::MonsterTurn => {
                 self.run_systems();
                 new_runstate = RunState::AwaitingInput;
@@ -109,20 +108,13 @@ impl GameState for State {
             *run_writer = new_runstate;
         }
 
-        
-        // if self.run_state == RunState::Running {
-        //     self.run_systems();
-        //     self.run_state = RunState::Paused;
-        // } else {
-        //     self.run_state = player_input(self, ctx);
-        // }
-
         // After systems run, delete any dead entities
         damage_system::delete_the_dead(&mut self.ecs);
 
         // The map is a resource, so get it from ecs world
         draw_map(&self.ecs, ctx);
 
+        // Draw other entities (player, monster, etc)
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
         let map = self.ecs.fetch::<Map>();
@@ -154,15 +146,14 @@ fn main() {
     gs.ecs.register::<WantsToMelee>();
     gs.ecs.register::<SufferDamage>();
 
-    // Insert resources into our ecs world
+    // Create a new map
     let map: Map = Map::new_map_rooms_and_corridors();
     // Put the player in the center of the 1st room before moving map into the ECS world
     let (player_x, player_y) = map.rooms[0].center();
 
-  
-
     // Create a player entity
-    let player_entity = gs.ecs
+    let player_entity = gs
+        .ecs
         .create_entity()
         .with(Position {
             x: player_x,
@@ -179,14 +170,21 @@ fn main() {
             range: 8,
             dirty: true,
         })
-        .with(Name { name: "Player".to_string() })
-        .with(CombatStats { max_hp: 30, hp: 30, defense: 2, power: 5})
+        .with(Name {
+            name: "Player".to_string(),
+        })
+        .with(CombatStats {
+            max_hp: 30,
+            hp: 30,
+            defense: 2,
+            power: 5,
+        })
         .build();
-    
+
     // Create monsters
     let mut rng = rltk::RandomNumberGenerator::new();
     for (i, room) in map.rooms.iter().skip(1).enumerate() {
-        let (x,y) = room.center();
+        let (x, y) = room.center();
 
         let glyph: u8;
         let name: String;
@@ -195,7 +193,7 @@ fn main() {
             1 => {
                 glyph = rltk::to_cp437('g');
                 name = "Goblin".to_string();
-            },
+            }
             _ => {
                 glyph = rltk::to_cp437('o');
                 name = "Orc".to_string();
@@ -204,26 +202,35 @@ fn main() {
 
         gs.ecs
             .create_entity()
-            .with(Position {x, y})
+            .with(Position { x, y })
             .with(Renderable {
                 glyph: glyph,
                 fg: RGB::named(rltk::RED),
                 bg: RGB::named(rltk::BLACK),
             })
             .with(Viewshed {
-                visible_tiles: Vec::new(), range: 8, dirty: true
+                visible_tiles: Vec::new(),
+                range: 8,
+                dirty: true,
             })
             .with(Monster {})
-            .with(Name { name: format!("{} #{}", &name, i) })
+            .with(Name {
+                name: format!("{} #{}", &name, i),
+            })
             .with(BlocksTile {})
-            .with(CombatStats { max_hp: 16, hp: 16, defense: 1, power: 4 })
+            .with(CombatStats {
+                max_hp: 16,
+                hp: 16,
+                defense: 1,
+                power: 4,
+            })
             .build();
     }
-    
-    gs.ecs.insert(RunState::PreRun);
-    gs.ecs.insert(player_entity);
+
     gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
     gs.ecs.insert(Point::new(player_x, player_y)); // Add player position as an ECS resource (updated in player input)
-    
+    gs.ecs.insert(player_entity);
+    gs.ecs.insert(RunState::PreRun);
+
     rltk::main_loop(ctx, gs);
 }

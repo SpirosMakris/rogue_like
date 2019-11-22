@@ -62,7 +62,9 @@ impl Map {
     }
 
     fn is_exit_valid(&self, x: i32, y: i32) -> bool {
-        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 { return false; }
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
+            return false;
+        }
         let idx = self.xy_idx(x, y);
         !self.blocked[idx]
         // self.tiles[idx] != TileType::Wall
@@ -76,7 +78,7 @@ impl Map {
 
     pub fn clear_content_index(&mut self) {
         for content in self.tile_content.iter_mut() {
-            content.clear();    // Clears the inner vector -> list of Entities per tile
+            content.clear(); // Clears the inner vector -> list of Entities per tile
         }
     }
 
@@ -151,16 +153,32 @@ impl BaseMap for Map {
         let y = idx / self.width;
 
         // Cardinal directions
-        if self.is_exit_valid(x-1, y) { exits.push((idx-1, 1.0)) };
-        if self.is_exit_valid(x+1, y) { exits.push((idx+1, 1.0)) };
-        if self.is_exit_valid(x, y-1) { exits.push((idx-self.width, 1.0)) };
-        if self.is_exit_valid(x, y+1) { exits.push((idx+self.width, 1.0)) };
-        
+        if self.is_exit_valid(x - 1, y) {
+            exits.push((idx - 1, 1.0))
+        };
+        if self.is_exit_valid(x + 1, y) {
+            exits.push((idx + 1, 1.0))
+        };
+        if self.is_exit_valid(x, y - 1) {
+            exits.push((idx - self.width, 1.0))
+        };
+        if self.is_exit_valid(x, y + 1) {
+            exits.push((idx + self.width, 1.0))
+        };
+
         // Diagonals
-        if self.is_exit_valid(x-1, y-1) { exits.push(((idx-self.width)-1, 1.45)); }
-        if self.is_exit_valid(x+1, y-1) { exits.push(((idx-self.width)+1, 1.45)); }
-        if self.is_exit_valid(x-1, y+1) { exits.push(((idx+self.width)-1, 1.45)); }
-        if self.is_exit_valid(x+1, y+1) { exits.push(((idx-self.width)-1, 1.45)); }
+        if self.is_exit_valid(x - 1, y - 1) {
+            exits.push(((idx - self.width) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y - 1) {
+            exits.push(((idx - self.width) + 1, 1.45));
+        }
+        if self.is_exit_valid(x - 1, y + 1) {
+            exits.push(((idx + self.width) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y + 1) {
+            exits.push(((idx - self.width) - 1, 1.45));
+        }
 
         exits
     }

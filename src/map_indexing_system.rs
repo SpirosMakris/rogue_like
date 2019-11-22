@@ -1,47 +1,40 @@
+use super::{BlocksTile, Map, Position};
 use specs::prelude::*;
-use super::{Map, Position, BlocksTile};
 
 pub struct MapIndexingSystem {}
 
 impl<'a> System<'a> for MapIndexingSystem {
-  type SystemData = (
-    WriteExpect<'a, Map>,
-    ReadStorage<'a, Position>,
-    ReadStorage<'a, BlocksTile>,
-    Entities<'a>,
-  );
+    type SystemData = (
+        WriteExpect<'a, Map>,
+        ReadStorage<'a, Position>,
+        ReadStorage<'a, BlocksTile>,
+        Entities<'a>,
+    );
 
-  fn run(&mut self, data: Self::SystemData) {
-    let (mut map, position, blockers, entities) = data;
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut map, position, blockers, entities) = data;
 
-    // Blocked from terrain
-    map.populate_blocked();
+        // Blocked from terrain
+        map.populate_blocked();
 
-    // Clear tile contents 
-    map.clear_content_index();
+        // Clear tile contents
+        map.clear_content_index();
 
-    // Index all entities with position comp
-    // update blocking status and index entities by tile
-    for (entity, pos) in (&entities, &position).join() {
-      let idx = map.xy_idx(pos.x, pos.y);
+        // Index all entities with position comp
+        // update blocking status and index entities by tile
+        for (entity, pos) in (&entities, &position).join() {
+            let idx = map.xy_idx(pos.x, pos.y);
 
-      // If they block, update the blocking list
-      let _p : Option<&BlocksTile> = blockers.get(entity);
-      if let Some(_p) = _p {
-        map.blocked[idx] = true;
-      }
+            // If they block, update the blocking list
+            let _p: Option<&BlocksTile> = blockers.get(entity);
+            if let Some(_p) = _p {
+                map.blocked[idx] = true;
+            }
 
-      // Push the entity to the appropriate index slot. It's a Copy
-      // type, so we don't need to clone (we want to avoid moving it out of
-      // the ECS!)
-      map.tile_content[idx].push(entity);
+            // Push the entity to the appropriate index slot. It's a Copy
+            // type, so we don't need to clone (we want to avoid moving it out of
+            // the ECS!)
+            map.tile_content[idx].push(entity);
+        }
     }
-  }
-
-  //   // Blocked from BlocksTile entities
-  //   for (position, _blocks) in (&position, &blockers).join() {
-  //     let idx = map.xy_idx(position.x, position.y);
-  //     map.blocked[idx] = true;
-  //   }
-  // }
 }
