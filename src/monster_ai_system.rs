@@ -1,6 +1,6 @@
 use specs::prelude::*;
-use super::{Viewshed, Monster, Name, Map, Position, WantsToMelee};
-use rltk::{Point, console};
+use super::{Viewshed, Monster, Name, Map, Position, WantsToMelee, RunState};
+use rltk::Point;
 
 
 pub struct MonsterAI {}
@@ -11,6 +11,7 @@ impl<'a> System<'a> for MonsterAI {
     WriteExpect<'a, Map>,
     ReadExpect<'a, Point>,  // Player Position resource
     ReadExpect<'a, Entity>, // Player entity resource
+    ReadExpect<'a, RunState>,
     Entities<'a>,
     WriteStorage<'a, Viewshed>,
     ReadStorage<'a, Monster>,
@@ -20,7 +21,10 @@ impl<'a> System<'a> for MonsterAI {
   );
   
     fn run(&mut self, data: Self::SystemData) {
-      let (mut map, player_pos, player_entity, entities, mut viewshed, monster, name, mut position, mut wants_to_melee) = data;
+      let (mut map, player_pos, player_entity, runstate, entities, mut viewshed, monster, name, mut position, mut wants_to_melee) = data;
+
+      // Only run if it's the monster's turn
+      if *runstate != RunState::MonsterTurn { return; }
 
       for (entity, mut viewshed, _monster, name, mut pos) in (&entities, &mut viewshed, &monster, &name, &mut position).join() {
         // Find out distance betweenus(monster) and player

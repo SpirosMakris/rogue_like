@@ -35,13 +35,17 @@ use damage_system::DamageSystem;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
-    Paused,
-    Running,
+    // Paused,
+    // Running,
+    AwaitingInput,
+    PreRun,
+    PlayerTurn,
+    MonsterTurn,
 }
 
 pub struct State {
     ecs: World,
-    pub run_state: RunState
+    // pub run_state: RunState
 }
 
 impl State {
@@ -73,13 +77,45 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
-        
-        if self.run_state == RunState::Running {
-            self.run_systems();
-            self.run_state = RunState::Paused;
-        } else {
-            self.run_state = player_input(self, ctx);
+
+        let mut new_runstate;
+        // Read the resource into a new var
+        {
+            let runstate = self.ecs.fetch::<RunState>();
+            new_runstate = *runstate;
         }
+
+        match new_runstate {
+            RunState::PreRun => {
+                self.run_systems();
+                new_runstate = RunState::AwaitingInput;
+            },
+            RunState::AwaitingInput => {
+                new_runstate = player_input(self, ctx);
+            },
+            RunState::PlayerTurn => {
+                self.run_systems();
+                new_runstate = RunState::MonsterTurn;
+            },
+            RunState::MonsterTurn => {
+                self.run_systems();
+                new_runstate = RunState::AwaitingInput;
+            }
+        }
+
+        // Write the updated run state into the resource
+        {
+            let mut run_writer = self.ecs.write_resource::<RunState>();
+            *run_writer = new_runstate;
+        }
+
+        
+        // if self.run_state == RunState::Running {
+        //     self.run_systems();
+        //     self.run_state = RunState::Paused;
+        // } else {
+        //     self.run_state = player_input(self, ctx);
+        // }
 
         // After systems run, delete any dead entities
         damage_system::delete_the_dead(&mut self.ecs);
@@ -104,7 +140,7 @@ fn main() {
     let ctx = Rltk::init_simple8x8(80, 50, "Hello Rust World", "resources");
 
     // Create our gamestate with an ecs world in it.
-    let mut gs = State { ecs: World::new(), run_state: RunState::Running };
+    let mut gs = State { ecs: World::new() };
 
     // Register our components with the ecs world (internally creates storage systems, etc)
     gs.ecs.register::<Position>();
@@ -184,6 +220,7 @@ fn main() {
             .build();
     }
     
+    gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(player_entity);
     gs.ecs.insert(map); // The map is now available from everywhere the ECS can see!
     gs.ecs.insert(Point::new(player_x, player_y)); // Add player position as an ECS resource (updated in player input)

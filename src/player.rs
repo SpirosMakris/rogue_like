@@ -1,5 +1,5 @@
 use super::{Map, Player, Position, State, Viewshed, CombatStats, RunState, WantsToMelee};
-use rltk::{Rltk, VirtualKeyCode, Point, console};
+use rltk::{Rltk, VirtualKeyCode, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
@@ -25,18 +25,6 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                     .expect("@ERROR: Add target failed");
                 return; // So we dont'move after attack.
             }
-            // match target {
-            //     None => {},
-            //     Some(t) => {
-            //         // Found something with combat stats in destination. Attack it and then
-            //         // return so we don't also move on it.
-            //         console::log(&format!("Target: {:?}", t));
-            //         console::log(&format!("By the power of Greyskull, I stab thee!"));
-            //         wants_to_melee.insert(entity, WantsToMelee { target: *potential_target})
-            //             .expect("@ERROR: Add target failed");
-            //         return; // So we don't move after attack
-            //     }
-            // }
         }
 
         // Check for blocking before moving
@@ -58,7 +46,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     // Player movement
     match ctx.key {
-        None => { return RunState::Paused } // Nothing happened
+        None => { return RunState::AwaitingInput } // Nothing happened
         Some(key) => match key {
             // Cardinal
             VirtualKeyCode::Left |
@@ -91,9 +79,9 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::Numpad1 |
             VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
 
-            _ => { return RunState::Paused }
+            _ => { return RunState::AwaitingInput }
         },
     }
 
-    RunState::Running
+    RunState::PlayerTurn
 }
