@@ -135,7 +135,10 @@ impl GameState for State {
 }
 
 fn main() {
-    let ctx = Rltk::init_simple8x8(80, 50, "Hello Rust World", "resources");
+    let mut ctx = Rltk::init_simple8x8(80, 50, "Hello Rust World", "resources");
+
+    // Add post-processing
+    ctx.with_post_scanlines(true);
 
     // Create our gamestate with an ecs world in it.
     let mut gs = State { ecs: World::new() };
